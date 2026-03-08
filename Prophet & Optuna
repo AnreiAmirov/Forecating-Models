@@ -1,0 +1,188 @@
+import optuna
+import pandas as pd
+from prophet import Prophet
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.metrics import r2_score, mean_absolute_error, mean_absolute_percentage_error
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter, MonthLocator, YearLocator
+import matplotlib.dates as mdates
+from matplotlib.ticker import FuncFormatter, ScalarFormatter
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+import warnings
+from datetime import datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import seaborn as sns
+from matplotlib.ticker import FuncFormatter
+import datetime
+import holidays
+import os
+import logging
+import sys
+from prophet.diagnostics import cross_validation
+from optuna.logging import set_verbosity
+import json
+from typing import Any, Dict, List, Tuple, Optional
+
+
+set_verbosity(optuna.logging.WARNING)
+file_path_eacq = r'data_eacq_SKB_fnal.xlsx' 
+warnings.filterwarnings("ignore")
+file_path_eacq = r'data_eacq_SKB_fnal.xlsx' 
+df = pd.read_excel(file_path_eacq)
+df.head()
+
+today = datetime.date.today()
+years = list(range(2022, today.year + 1))
+country_holidays = holidays.Russia(years=years)
+holidays_df = pd.DataFrame([
+    {'ds': pd.to_datetime(dt), 'holiday': name, 'lower_window': 0, 'upper_window': 3}
+    for dt, name in country_holidays.items()
+])
+
+def add_regressors(df: pd.DataFrame) -> pd.DataFrame:
+    """Add custom regressors, e.g., special Thursday and summer season"""
+    df['ds'] = pd.to_datetime(df['ds'])
+    df['summer_season'] = df['ds'].dt.month.isin([6, 7, 8]).astype(int)
+    return df
+
+
+model_old = Prophet(holidays=holidays_df,
+            weekly_seasonality= True,
+            yearly_seasonality= True,
+            daily_seasonality= True,
+            #changepoint_prior_scale= 0.05,
+            interval_width= 0.95,)
+model_old.fit(df_prophet_eacq)
+future = pd.DataFrame({'ds': pd.date_range(start="2023-01-01", end="2026-12-31", freq='D')})
+future.tail()
+forecast_eacq_old = model_old.predict(future)
+fig1 = model_old.plot(forecast_eacq_old)
+#fig2 = model_old.plot_components(forecast_eacq_old)
+
+# для неоптимиированной Prophet
+
+y_true = df_prophet_eacq['y'].values
+y_pred = forecast_eacq_old['yhat'][:len(df_prophet_eacq)].values
+
+r2 = r2_score(y_true, y_pred)
+mae = mean_absolute_error(y_true, y_pred)
+mape = mean_absolute_percentage_error(y_true, y_pred) * 100
+rmse = np.sqrt(np.mean((y_pred - y_true) ** 2))
+
+print(f"{'R²':<25} | {r2:^12.3f}")
+print(f"{'MAE (тыс. руб.)':<25} | {mae/1000:^12,.0f}")
+print(f"{'MAPE (%)':<25} | {mape:^12.1f}")
+print(f"{'RMSE (тыс.)':<25} | {rmse/1000:^12.1f}")
+
+
+# 0. Полностью отключаем логи Optuna (кроме ошибок)
+optuna.logging.set_verbosity(optuna.logging.ERROR)
+logging.basicConfig(level=logging.ERROR)
+warnings.filterwarnings("ignore")
+logging.getLogger('prophet').setLevel(logging.ERROR)
+logging.getLogger('cmdstanpy').setLevel(logging.ERROR)
+set_verbosity(optuna.logging.WARNING)
+
+
+def run_optuna_search_revenue_cv(df_prophet_eacq, n_trials: int = 50, metric: str = {"mae", "mape","r2", "rmse"}) -> Dict:
+    optuna.logging.set_verbosity(optuna.logging.ERROR)
+    logging.basicConfig(level=logging.ERROR)
+    warnings.filterwarnings("ignore")
+    logging.getLogger('prophet').setLevel(logging.ERROR)
+    logging.getLogger('cmdstanpy').setLevel(logging.ERROR)
+    set_verbosity(optuna.logging.WARNING)
+    """Optimize Prophet hyperparameters using Optuna"""
+
+    def objective(trial):
+        # Suggest hyperparameters
+        params = {
+            "changepoint_prior_scale": trial.suggest_float("changepoint_prior_scale", 0.001, 0.5, log=True),
+            "seasonality_prior_scale": trial.suggest_float("seasonality_prior_scale", 0.01, 10.0, log=True),
+            "holidays_prior_scale": trial.suggest_float("holidays_prior_scale", 0.01, 10.0, log=True),
+            "seasonality_mode": trial.suggest_categorical("seasonality_mode", ["additive", "multiplicative"]),
+            "n_changepoints": trial.suggest_int("n_changepoints", 10, 50),
+            "changepoint_range": trial.suggest_float("changepoint_range", 0.8, 0.95),
+            #'weekly_seasonality': trial.suggest_categorical('weekly_seasonality', [True, False]),
+            #'yearly_seasonality': trial.suggest_categorical('yearly_seasonality', [True, False]),
+            #'daily_seasonality': trial.suggest_categorical('daily_seasonality', [True, False]),
+        }
+
+        df_train = add_regressors(df_prophet_eacq.copy())
+        model = Prophet(
+            holidays=holidays_df,
+            weekly_seasonality=True,
+            daily_seasonality=False,
+            yearly_seasonality=False,
+            interval_width=0.95,
+            **params
+        )
+        # Optional seasonalities
+        model.add_seasonality(name='yearly', period=365.25, fourier_order=3)
+        model.add_seasonality(name='yearly_alt', period=365.25, fourier_order=15)
+
+        # Fit model
+        model.fit(df_train)
+
+        # Cross-validation
+        df_cv = cross_validation(model
+                                 , initial="366 days"
+                                 , period="31 days"
+                                 , horizon="91 days"
+                                 , parallel= None #"processes"
+                                )
+        y_true = df_cv["y"].values
+        y_pred = df_cv["yhat"].values
+
+        return LOSS_FUNCS[metric](y_true, y_pred)
+
+    study = optuna.create_study(direction= "maximize")
+    study.optimize(objective, n_trials=n_trials)
+    
+    return study.best_params
+
+
+# После получения best_params из run_optuna_search_revenue_cv
+best_params = run_optuna_search_revenue_cv(df_prophet_eacq, n_trials=50, metric= "r2")
+
+# Создаем модель с лучшими параметрами
+model = Prophet(
+    holidays=holidays_df,
+    weekly_seasonality=True,
+    daily_seasonality=False,
+    yearly_seasonality=False,
+    interval_width=0.95,
+    **best_params
+)
+
+# Добавляем сезонности вручную (как в objective)
+model.add_seasonality(name='yearly', period=365.25, fourier_order=3)
+model.add_seasonality(name='yearly_alt', period=365.25, fourier_order=15)
+
+# Обучаем модель на всех данных
+df_train = add_regressors(df_prophet_eacq.copy())
+model.fit(df_train.rename(columns={"ds": "ds", "y": "y"}))
+
+# Создаем future dataframe
+future = pd.DataFrame({'ds': pd.date_range(start="2023-01-01", end="2026-12-31", freq='D')})
+
+# Прогнозируем
+forecast_eacq = model.predict(future)
+
+# Визуализация
+fig1 = model.plot(forecast_eacq)
+
+y_true = df_prophet_eacq['y'].values
+y_pred = forecast_eacq['yhat'][:len(df_prophet_eacq)].values
+
+r2 = r2_score(y_true, y_pred)
+mae = mean_absolute_error(y_true, y_pred)
+mape = mean_absolute_percentage_error(y_true, y_pred) * 100
+rmse = np.sqrt(np.mean((y_pred - y_true) ** 2))
+
+print(f"{'R²':<25} | {r2:^12.3f}")
+print(f"{'MAE (тыс. руб.)':<25} | {mae/1000:^12,.0f}")
+print(f"{'MAPE (%)':<25} | {mape:^12.1f}")
+print(f"{'RMSE (тыс.)':<25} | {rmse/1000:^12.1f}") 
