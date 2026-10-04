@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data for Everyone — A/B Testing & Causal Inference</title>
+<meta name="description" content="Free, browser-based tools and guides for A/B testing and causal inference. The right statistical test, sample sizes, and plain-English explanations.">
+<link rel="canonical" href="https://data-for-everyone.com/">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Data for Everyone — A/B Testing & Causal Inference">
+<meta property="og:description" content="Free, browser-based tools and guides for A/B testing and causal inference.">
+<meta property="og:url" content="https://data-for-everyone.com/">
+<meta property="og:image" content="https://data-for-everyone.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://data-for-everyone.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="site-header-row">
+      <h1 class="site-title-link"><a href="index.html" data-i18n="home_brand">Data for Everyone</a></h1>
+      <div class="header-controls">
+        <button class="lang-toggle" onclick="toggleLang()" aria-label="Switch language" id="lang-btn">
+          <span id="lang-label">RU</span>
+        </button>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+          <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+          <span id="theme-label" data-i18n="theme_dark">Dark</span>
+        </button>
+      </div>
+    </div>
+    <p data-i18n="home_tagline">Free, browser-based tools and guides for making confident decisions from data — no signup, nothing leaves your device.</p>
+  </div>
+</header>
+<main id="main-content" class="home-main">
+  <div class="home-intro">
+    <h2 data-i18n="home_pick">What do you want to work on?</h2>
+    <p data-i18n="home_pick_sub">Four connected toolkits. Plan and analyse an experiment, measure impact when a clean test is impossible, or sharpen the Python and SQL you use every day.</p>
+  </div>
+  <a class="home-flagship" href="ab-testing.html">
+    <div class="flagship-main">
+      <div class="home-card-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
+      </div>
+      <span class="flagship-tag" data-i18n="home_flag_tag">Interactive tool</span>
+      <h3 data-i18n="home_ab_title">A/B Testing Calculator</h3>
+      <p data-i18n="home_ab_desc">Plan a test, analyse your results, and learn the theory. Picks the right statistical test for your metric, sizes the sample, and gives a plain-English verdict.</p>
+    </div>
+    <div class="flagship-side">
+      <ul class="home-card-list">
+        <li data-i18n="home_ab_1">Sample size &amp; duration planner</li>
+        <li data-i18n="home_ab_2">Z-test, Welch's t, delta method, SRM check</li>
+        <li data-i18n="home_ab_3">Upload Excel / CSV and get a verdict</li>
+      </ul>
+    </div>
+    <span class="home-card-cta flagship-cta" data-i18n="home_ab_cta">Open the calculator →</span>
+  </a>
+
+  <div class="home-cards">
+    <a class="home-card" href="causal.html">
+      <div class="home-card-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 15c4 0 4-8 8-8s4 8 8 8"/><circle cx="4" cy="19" r="1.6"/><circle cx="20" cy="15" r="1.6"/></svg>
+      </div>
+      <h3 data-i18n="home_causal_title">Causal Inference</h3>
+      <p data-i18n="home_causal_desc">How to measure a real effect when you can't run a clean A/B test. Five practical methods, when to use each, their limits, and runnable Python.</p>
+      <ul class="home-card-list">
+        <li data-i18n="home_causal_1">Difference-in-Differences, RDD, IV, matching, synthetic control</li>
+        <li data-i18n="home_causal_2">Business cases, not textbook proofs</li>
+        <li data-i18n="home_causal_3">Formulas &amp; copy-paste Python you can run</li>
+      </ul>
+      <span class="home-card-cta" data-i18n="home_causal_cta">Explore causal inference →</span>
+    </a>
+
+    <a class="home-card" href="python.html">
+      <div class="home-card-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      </div>
+      <h3 data-i18n="home_py_title">Python for Analysts</h3>
+      <p data-i18n="home_py_desc">Practical Python for product analytics — language fundamentals, dataset design, pandas, and six real cases with runnable code and charts.</p>
+      <ul class="home-card-list">
+        <li data-i18n="home_py_1">Fundamentals, plus 50 interview problems</li>
+        <li data-i18n="home_py_2">Dataset design: types, tidy format, clean reads</li>
+        <li data-i18n="home_py_3">Six business cases with real charts</li>
+      </ul>
+      <span class="home-card-cta" data-i18n="home_py_cta">Learn Python →</span>
+    </a>
+
+    <a class="home-card" href="sql.html">
+      <div class="home-card-icon" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+      </div>
+      <h3 data-i18n="home_sql_title">SQL for Analysts</h3>
+      <p data-i18n="home_sql_desc">Practice databases and fifteen product tasks — from DAU and conversion to churn, cohorts and window functions.</p>
+      <ul class="home-card-list">
+        <li data-i18n="home_sql_1">Joins, NULL logic, dates, CTE, window functions</li>
+        <li data-i18n="home_sql_2">Four linked databases with a visible schema</li>
+        <li data-i18n="home_sql_3">15 tasks from easy to medium, with real output</li>
+      </ul>
+      <span class="home-card-cta" data-i18n="home_sql_cta">Practise SQL →</span>
+    </a>
+  </div>
+  <p class="home-foot" data-i18n="home_foot">Built by a product analyst as an open, bilingual learning resource. Everything runs client-side.</p>
+</main>
+<script src="i18n.js"></script>
+<script src="stats.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

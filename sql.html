@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQL for Analysts — Data for Everyone</title>
+<meta name="description" content="Practical SQL for product analysts: joins, NULL logic, dates, window functions and fifteen product tasks with real PostgreSQL output.">
+<link rel="canonical" href="https://data-for-everyone.com/sql.html">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL for Analysts — Data for Everyone">
+<meta property="og:description" content="Practice databases and fifteen product tasks with verified PostgreSQL output.">
+<meta property="og:url" content="https://data-for-everyone.com/sql.html">
+<meta property="og:image" content="https://data-for-everyone.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://data-for-everyone.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="site-header-inner">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="index.html" data-i18n="home_brand">Data for Everyone</a>
+      <span class="crumb-sep" aria-hidden="true">/</span>
+      <span class="crumb-cur" data-i18n="sql_title">SQL for Analysts</span>
+    </nav>
+    <div class="site-header-row">
+      <h1 data-i18n="sql_title">SQL for Analysts</h1>
+      <div class="header-controls">
+        <a class="home-link" href="index.html">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span data-i18n="nav_home">Home</span>
+        </a>
+        <button class="lang-toggle" onclick="toggleLang()" aria-label="Switch language" id="lang-btn"><span id="lang-label">RU</span></button>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+          <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+          <span id="theme-label" data-i18n="theme_dark">Dark</span>
+        </button>
+      </div>
+    </div>
+    <p data-i18n="sql_sub">Four practice databases and fifteen product tasks.</p>
+  </div>
+</header>
+<main class="causal-main" id="tab-reference">
+<div class="causal-layout">
+<nav class="toc-sidebar" id="sql-nav"><div class="toc-side-title" data-i18n="sql_toc_h">On this page</div>
+<a class="toc-link" href="#s-schema"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></span><span data-i18n="sql_nav_1">Practice databases</span></a>
+<a class="toc-link" href="#s-order"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="19" cy="18" r="2"/></svg></span><span data-i18n="sql_nav_2">Query execution order</span></a>
+<a class="toc-link" href="#s-joins"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/></svg></span><span data-i18n="sql_nav_3">Joins</span></a>
+<a class="toc-link" href="#s-null"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span><span data-i18n="sql_nav_4">NULL logic</span></a>
+<a class="toc-link" href="#s-dates"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><span data-i18n="sql_nav_5">Dates and time</span></a>
+<a class="toc-link" href="#s-window"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/><path d="M13 9h5M13 13h5"/></svg></span><span data-i18n="sql_nav_6">Window functions</span></a>
+<a class="toc-link" href="#s-tasks"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span data-i18n="sql_nav_7">15 practice tasks</span></a>
+<a class="toc-link" href="#s-errors"><span class="toc-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5h.01"/></svg></span><span data-i18n="sql_nav_8">Common mistakes</span></a>
+</nav><div class="causal-content">
+<div class="card" id="s-schema"><div class="card-title" data-i18n="sc_h">Practice databases</div>
+<p data-i18n="sc_lead">Every task below runs on these four linked tables — a typical product-analytics schema. The data deliberately contains NULLs, cancelled orders and ended subscriptions, so the traps are real rather than hypothetical.</p>
+<div class="schema-grid">
+<div class="schema-card"><div class="schema-head"><span class="schema-name">users</span><span class="schema-count">60 <span data-i18n="sc_rows">rows</span></span></div><table class="schema-cols"><tbody>
+<tr><td class="c-name">user_id</td><td class="c-type">integer</td><td class="c-badges"><span class="badge pk" title="primary key">PK</span></td></tr>
+<tr><td class="c-name">signup_date</td><td class="c-type">date</td><td class="c-badges"></td></tr>
+<tr><td class="c-name">country</td><td class="c-type">text</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+<tr><td class="c-name">plan</td><td class="c-type">text</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+<tr><td class="c-name">channel</td><td class="c-type">text</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+</tbody></table></div>
+<div class="schema-card"><div class="schema-head"><span class="schema-name">events</span><span class="schema-count">1606 <span data-i18n="sc_rows">rows</span></span></div><table class="schema-cols"><tbody>
+<tr><td class="c-name">event_id</td><td class="c-type">bigint</td><td class="c-badges"><span class="badge pk" title="primary key">PK</span></td></tr>
+<tr><td class="c-name">user_id<span class="schema-ref">→ users.user_id</span></td><td class="c-type">integer</td><td class="c-badges"><span class="badge fk" title="references users.user_id">FK</span></td></tr>
+<tr><td class="c-name">event_at</td><td class="c-type">timestamp</td><td class="c-badges"></td></tr>
+<tr><td class="c-name">event</td><td class="c-type">text</td><td class="c-badges"></td></tr>
+</tbody></table></div>
+<div class="schema-card"><div class="schema-head"><span class="schema-name">orders</span><span class="schema-count">120 <span data-i18n="sc_rows">rows</span></span></div><table class="schema-cols"><tbody>
+<tr><td class="c-name">order_id</td><td class="c-type">integer</td><td class="c-badges"><span class="badge pk" title="primary key">PK</span></td></tr>
+<tr><td class="c-name">user_id<span class="schema-ref">→ users.user_id</span></td><td class="c-type">integer</td><td class="c-badges"><span class="badge fk" title="references users.user_id">FK</span><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+<tr><td class="c-name">created_at</td><td class="c-type">timestamp</td><td class="c-badges"></td></tr>
+<tr><td class="c-name">amount</td><td class="c-type">numeric</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+<tr><td class="c-name">status</td><td class="c-type">text</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+</tbody></table></div>
+<div class="schema-card"><div class="schema-head"><span class="schema-name">subscriptions</span><span class="schema-count">16 <span data-i18n="sc_rows">rows</span></span></div><table class="schema-cols"><tbody>
+<tr><td class="c-name">sub_id</td><td class="c-type">integer</td><td class="c-badges"><span class="badge pk" title="primary key">PK</span></td></tr>
+<tr><td class="c-name">user_id<span class="schema-ref">→ users.user_id</span></td><td class="c-type">integer</td><td class="c-badges"><span class="badge fk" title="references users.user_id">FK</span><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+<tr><td class="c-name">started_on</td><td class="c-type">date</td><td class="c-badges"></td></tr>
+<tr><td class="c-name">ended_on</td><td class="c-type">date</td><td class="c-badges"><span class="badge nul" title="may be NULL">NULL</span></td></tr>
+</tbody></table></div>
+</div><div class="schema-legend"><span><span class="badge pk">PK</span> <span data-i18n="sc_legend_pk">primary key</span></span><span><span class="badge fk">FK</span> <span data-i18n="sc_legend_fk">foreign key</span></span><span><span class="badge nul">NULL</span> <span data-i18n="sc_legend_null">may be NULL</span></span></div>
+<div class="dd-h3" data-i18n="sc_ddl_h">The DDL that creates it</div>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">CREATE</span> <span class="hl-kw">TABLE</span> users (
+    user_id     <span class="hl-type">INT</span> <span class="hl-kw">PRIMARY</span> <span class="hl-kw">KEY</span>,
+    signup_date <span class="hl-type">DATE</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>,
+    country     <span class="hl-type">TEXT</span>,             <span class="hl-com">-- may be NULL: geo not resolved</span>
+    plan        <span class="hl-type">TEXT</span>,             <span class="hl-com">-- free / pro, may be NULL</span>
+    channel     <span class="hl-type">TEXT</span>
+);
+
+<span class="hl-kw">CREATE</span> <span class="hl-kw">TABLE</span> events (
+    event_id  <span class="hl-type">BIGSERIAL</span> <span class="hl-kw">PRIMARY</span> <span class="hl-kw">KEY</span>,
+    user_id   <span class="hl-type">INT</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span> <span class="hl-kw">REFERENCES</span> users(user_id),
+    event_at  <span class="hl-type">TIMESTAMP</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>,
+    event     <span class="hl-type">TEXT</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>       <span class="hl-com">-- open / view / add_to_cart / purchase</span>
+);
+
+<span class="hl-kw">CREATE</span> <span class="hl-kw">TABLE</span> orders (
+    order_id   <span class="hl-type">INT</span> <span class="hl-kw">PRIMARY</span> <span class="hl-kw">KEY</span>,
+    user_id    <span class="hl-type">INT</span> <span class="hl-kw">REFERENCES</span> users(user_id),
+    created_at <span class="hl-type">TIMESTAMP</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>,
+    amount     <span class="hl-type">NUMERIC</span>(<span class="hl-num">10</span>,<span class="hl-num">2</span>),     <span class="hl-com">-- NULL when the order is not paid</span>
+    status     <span class="hl-type">TEXT</span>               <span class="hl-com">-- paid / cancelled / pending</span>
+);
+
+<span class="hl-kw">CREATE</span> <span class="hl-kw">TABLE</span> subscriptions (
+    sub_id     <span class="hl-type">INT</span> <span class="hl-kw">PRIMARY</span> <span class="hl-kw">KEY</span>,
+    user_id    <span class="hl-type">INT</span> <span class="hl-kw">REFERENCES</span> users(user_id),
+    started_on <span class="hl-type">DATE</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>,
+    ended_on   <span class="hl-type">DATE</span>               <span class="hl-com">-- NULL = still active</span>
+);</pre></div>
+</div>
+
+<div class="dd-h3" data-i18n="sc_peek_h">What the data looks like</div>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> * <span class="hl-kw">FROM</span> users <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> user_id <span class="hl-kw">LIMIT</span> <span class="hl-num">5</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>user_id | signup_date | country | plan | channel  
+---------+-------------+---------+------+----------
+       1 | 2026-01-01  | KZ      | free | organic
+       2 | 2026-01-22  | KZ      | free | referral
+       3 | 2026-02-02  | RU      | free | referral
+       4 | 2026-03-01  | KZ      | pro  | referral
+       5 | 2026-03-14  | RU      | free | organic
+(5 rows)</div>
+</div>
+
+<div class="callout-box" data-i18n="sc_note"><b>Note the NULLs:</b> a user may have no <code>country</code> and no <code>plan</code>. That is not a generation glitch — it is the reality that breaks <code>NOT IN</code>, <code>COUNT</code> and <code>AVG</code>. Tasks 12 and 13 rely on exactly these rows.</div>
+</div>
+<div class="card" id="s-order"><div class="card-title" data-i18n="or_h">How a query actually runs</div>
+<p data-i18n="or_p">The single most useful thing to understand before anything else: SQL does <b>not</b> execute in the order it is written. Almost every "why does this not work" question traces back to this.</p>
+<div class="exec-order"><span>FROM / JOIN</span><i>→</i><span>WHERE</span><i>→</i><span>GROUP BY</span><i>→</i><span>HAVING</span><i>→</i><span>SELECT</span><i>→</i><span>ORDER BY</span><i>→</i><span>LIMIT</span></div>
+<table class="ref-table"><thead><tr><th data-i18n="or_c1">Rule</th><th data-i18n="or_c2">Why</th></tr></thead><tbody>
+<tr><td data-i18n="or_r1a"><code>WHERE</code> cannot see aggregates</td><td data-i18n="or_r1b">It runs before <code>GROUP BY</code>, so sums and counts do not exist yet. Use <code>HAVING</code>.</td></tr>
+<tr><td data-i18n="or_r2a"><code>WHERE</code> cannot see <code>SELECT</code> aliases</td><td data-i18n="or_r2b"><code>SELECT</code> runs later — the alias has not been created yet.</td></tr>
+<tr><td data-i18n="or_r3a">Window functions cannot go in <code>WHERE</code></td><td data-i18n="or_r3b">They run after <code>SELECT</code>. Wrap them in a subquery — see task 9.</td></tr>
+<tr><td data-i18n="or_r4a"><code>ORDER BY</code> <i>can</i> see aliases</td><td data-i18n="or_r4b">It runs last, so by then every alias exists. This is the one place you may reuse them.</td></tr>
+</tbody></table></div>
+<div class="card" id="s-joins"><div class="card-title" data-i18n="jn_h">Joins: which one when</div>
+<p data-i18n="jn_p">A join answers one question: what to do with rows that have no match on the other side.</p>
+<table class="ref-table"><thead><tr><th data-i18n="jn_c1">Type</th><th data-i18n="jn_c2">Returns</th><th data-i18n="jn_c3">When you need it</th></tr></thead><tbody>
+<tr><td><code>INNER JOIN</code></td><td data-i18n="jn_1b">Only rows that matched on both sides</td><td data-i18n="jn_1c">You want users who actually placed an order</td></tr>
+<tr><td><code>LEFT JOIN</code></td><td data-i18n="jn_2b">Everything on the left, plus matches on the right (NULL otherwise)</td><td data-i18n="jn_2c">All users, including those with no orders — by far the most common in analytics</td></tr>
+<tr><td><code>RIGHT / FULL</code></td><td data-i18n="jn_3b">Mirrored / everything from both sides</td><td data-i18n="jn_3c">Rare; usually rewritten as a LEFT JOIN</td></tr>
+<tr><td><code>CROSS JOIN</code></td><td data-i18n="jn_4b">Every combination of both sides</td><td data-i18n="jn_4c">A calendar of dates × segments so there are no gaps; dividing by a grand total</td></tr>
+</tbody></table>
+<div class="callout-box warn" data-i18n="jn_warn"><b>A condition in <code>ON</code> is not the same as in <code>WHERE</code>.</b> For a <code>LEFT JOIN</code>, filtering the right table in <code>WHERE</code> turns it into an <code>INNER JOIN</code>: rows whose right side is NULL fail the condition and disappear. To keep the left side, the condition belongs in <code>ON</code>. Task 11 shows this in action.</div>
+</div>
+<div class="card" id="s-null"><div class="card-title" data-i18n="nl_h">NULL: three states, not two</div>
+<p data-i18n="nl_p">SQL logic is three-valued: true, false and <b>unknown</b>. <code>NULL</code> means "unknown", any comparison with it yields "unknown" again — and "unknown" does not pass a filter.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> (<span class="hl-const">NULL</span> = <span class="hl-const">NULL</span>) <span class="hl-kw">AS</span> eq, (<span class="hl-const">NULL</span> <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span>) <span class="hl-kw">AS</span> is_null,
+       (<span class="hl-num">5</span> &gt; <span class="hl-const">NULL</span>) <span class="hl-kw">AS</span> cmp, <span class="hl-bi">COALESCE</span>(<span class="hl-const">NULL</span>, <span class="hl-str">'fallback'</span>) <span class="hl-kw">AS</span> coalesced</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>eq | is_null | cmp | coalesced 
+----+---------+-----+-----------
+    | t       |     | fallback
+(1 row)</div>
+</div>
+
+<div class="callout-box" data-i18n="nl_read"><b>Reading the result:</b> <code>NULL = NULL</code> came back empty rather than true. That is why you compare with <code>IS NULL</code>, and substitute a fallback with <code>COALESCE</code>.</div>
+<div class="cs-takeaway" data-i18n="nl_take"><b>How NULL affects aggregates:</b> <code>COUNT(*)</code> counts every row, <code>COUNT(column)</code> only non-null ones, and <code>AVG</code> / <code>SUM</code> quietly skip NULLs. The gap between the first two is exactly your number of missing values — see task 12.</div>
+</div>
+<div class="card" id="s-dates"><div class="card-title" data-i18n="dt_h">Dates and time</div>
+<p data-i18n="dt_p">Three operations cover almost everything: the difference between two dates, truncating to a period, and shifting by an interval. In PostgreSQL subtracting two <code>date</code> values gives an integer number of days, while subtracting two timestamps gives an <code>interval</code>.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span>
+  <span class="hl-type">DATE</span> <span class="hl-str">'2026-03-15'</span> - <span class="hl-type">DATE</span> <span class="hl-str">'2026-03-01'</span>                    <span class="hl-kw">AS</span> days_between,
+  <span class="hl-bi">date_trunc</span>(<span class="hl-str">'week'</span>,  <span class="hl-type">TIMESTAMP</span> <span class="hl-str">'2026-03-15 12:00'</span>)::<span class="hl-type">date</span>  <span class="hl-kw">AS</span> week_start,
+  <span class="hl-bi">date_trunc</span>(<span class="hl-str">'month'</span>, <span class="hl-type">TIMESTAMP</span> <span class="hl-str">'2026-03-15 12:00'</span>)::<span class="hl-type">date</span>  <span class="hl-kw">AS</span> month_start,
+  <span class="hl-type">DATE</span> <span class="hl-str">'2026-03-15'</span> - <span class="hl-kw">INTERVAL</span> <span class="hl-str">'7 days'</span>                    <span class="hl-kw">AS</span> week_ago,
+  <span class="hl-bi">to_char</span>(<span class="hl-type">DATE</span> <span class="hl-str">'2026-03-15'</span>, <span class="hl-str">'Day'</span>)                        <span class="hl-kw">AS</span> weekday</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>days_between | week_start | month_start |      week_ago       |  weekday  
+--------------+------------+-------------+---------------------+-----------
+           14 | 2026-03-09 | 2026-03-01  | 2026-03-08 00:00:00 | Sunday   
+(1 row)</div>
+</div>
+
+<div class="callout-box warn" data-i18n="dt_warn"><b>The classic trap:</b> comparing a timestamp column directly to a date finds nothing unless the event happened at exactly midnight. Use a half-open range instead — <code>&gt;= the day AND &lt; the next day</code>.</div>
+<div class="callout-box" data-i18n="dt_dial"><b>Across dialects:</b> the ideas are identical, the syntax differs. Date difference in PostgreSQL is <code>a - b</code>; in BigQuery <code>DATE_DIFF(a, b, DAY)</code>; in MySQL <code>DATEDIFF(a, b)</code>. Truncation is <code>date_trunc</code> in PostgreSQL and <code>DATE_TRUNC</code> with a different argument order in BigQuery.</div>
+</div>
+<div class="card" id="s-window"><div class="card-title" data-i18n="wn_h">Window functions</div>
+<p data-i18n="wn_p">A window computes an aggregate <b>without collapsing rows</b>: the rows stay where they are and a calculated column appears beside them. That is the essential difference from <code>GROUP BY</code>.</p>
+<div class="dd-h3" data-i18n="wn_rank_h">ROW_NUMBER, RANK and DENSE_RANK</div>
+<p data-i18n="wn_rank_p">People confuse these constantly, because with no ties they behave identically. The difference only appears on a tie — so in the example Anna and Boris both have 500.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> sales(rep, region, amount) <span class="hl-kw">AS</span> (<span class="hl-kw">VALUES</span>
+  (<span class="hl-str">'Anna'</span>,<span class="hl-str">'RU'</span>,<span class="hl-num">500</span>),(<span class="hl-str">'Boris'</span>,<span class="hl-str">'RU'</span>,<span class="hl-num">500</span>),(<span class="hl-str">'Clara'</span>,<span class="hl-str">'RU'</span>,<span class="hl-num">300</span>),
+  (<span class="hl-str">'Dmitry'</span>,<span class="hl-str">'KZ'</span>,<span class="hl-num">700</span>),(<span class="hl-str">'Elena'</span>,<span class="hl-str">'KZ'</span>,<span class="hl-num">400</span>))
+<span class="hl-kw">SELECT</span> rep, region, amount,
+  <span class="hl-bi">ROW_NUMBER</span>() <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> region <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> amount <span class="hl-kw">DESC</span>) <span class="hl-kw">AS</span> row_num,
+  <span class="hl-bi">RANK</span>()       <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> region <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> amount <span class="hl-kw">DESC</span>) <span class="hl-kw">AS</span> rnk,
+  <span class="hl-bi">DENSE_RANK</span>() <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> region <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> amount <span class="hl-kw">DESC</span>) <span class="hl-kw">AS</span> dense
+<span class="hl-kw">FROM</span> sales
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> region, amount <span class="hl-kw">DESC</span></pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>rep   | region | amount | row_num | rnk | dense 
+--------+--------+--------+---------+-----+-------
+ Dmitry | KZ     |    700 |       1 |   1 |     1
+ Elena  | KZ     |    400 |       2 |   2 |     2
+ Anna   | RU     |    500 |       1 |   1 |     1
+ Boris  | RU     |    500 |       2 |   1 |     1
+ Clara  | RU     |    300 |       3 |   3 |     2
+(5 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="wn_rank_take"><b>Clara's row explains it all:</b> <code>ROW_NUMBER</code> gave her 3 (just a sequence number), <code>RANK</code> also 3 (places 1 and 1 are taken, so 2 is skipped), and <code>DENSE_RANK</code> gave 2 (no gaps). Use <code>ROW_NUMBER</code> for "top-N per group" and <code>RANK</code> for an honest leaderboard position.</div>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> sales(rep, amount) <span class="hl-kw">AS</span> (<span class="hl-kw">VALUES</span>
+  (<span class="hl-str">'Anna'</span>,<span class="hl-num">500</span>),(<span class="hl-str">'Boris'</span>,<span class="hl-num">500</span>),(<span class="hl-str">'Clara'</span>,<span class="hl-num">300</span>),(<span class="hl-str">'Dmitry'</span>,<span class="hl-num">700</span>),(<span class="hl-str">'Elena'</span>,<span class="hl-num">400</span>))
+<span class="hl-kw">SELECT</span> rep, amount,
+  <span class="hl-bi">SUM</span>(amount) <span class="hl-kw">OVER</span> (<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> amount <span class="hl-kw">DESC</span>
+                    <span class="hl-kw">ROWS</span> <span class="hl-kw">UNBOUNDED</span> <span class="hl-kw">PRECEDING</span>)      <span class="hl-kw">AS</span> running_total,
+  <span class="hl-bi">ROUND</span>(<span class="hl-num">100.0</span> * amount / <span class="hl-bi">SUM</span>(amount) <span class="hl-kw">OVER</span> (), <span class="hl-num">1</span>)   <span class="hl-kw">AS</span> pct_of_total
+<span class="hl-kw">FROM</span> sales
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> amount <span class="hl-kw">DESC</span></pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>rep   | amount | running_total | pct_of_total 
+--------+--------+---------------+--------------
+ Dmitry |    700 |           700 |         29.2
+ Anna   |    500 |          1200 |         20.8
+ Boris  |    500 |          1700 |         20.8
+ Elena  |    400 |          2100 |         16.7
+ Clara  |    300 |          2400 |         12.5
+(5 rows)</div>
+</div>
+
+<div class="callout-box" data-i18n="wn_over"><b>A useful trick:</b> <code>OVER ()</code> with no arguments means "over the whole result set" — that is how you compute a share of the grand total inside the same query, without a second pass.</div>
+</div>
+<div class="card" id="s-tasks"><div class="card-title" data-i18n="tk_h">15 practice tasks</div>
+<p data-i18n="tk_lead">The tasks go from basic metrics to composite ones. All of them run on the databases above, and the output under each query is the real thing.</p>
+<div class="task" id="task1">
+<div class="task-head"><span class="task-num">1</span>
+<span class="task-title" data-i18n="sqlt1_h">DAU — daily active users</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt1_i">The most basic product metric. The key word is <code>DISTINCT</code>: a user counts once per day no matter how many events they fire.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> event_at::<span class="hl-type">date</span> <span class="hl-kw">AS</span> day,
+       <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">AS</span> dau
+<span class="hl-kw">FROM</span> events
+<span class="hl-kw">WHERE</span> event_at &gt;= <span class="hl-str">'2026-03-01'</span>
+  <span class="hl-ctl">AND</span> event_at &lt;  <span class="hl-str">'2026-03-08'</span>
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>day     | dau 
+------------+-----
+ 2026-03-01 |  13
+ 2026-03-02 |   9
+ 2026-03-03 |  16
+ 2026-03-04 |  14
+ 2026-03-05 |  12
+ 2026-03-06 |  13
+ 2026-03-07 |  11
+(7 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt1_k">Without <code>DISTINCT</code> you would count events, not people — the number would be several times higher. This is the most common DAU mistake.</div>
+</div>
+<div class="task" id="task2">
+<div class="task-head"><span class="task-num">2</span>
+<span class="task-title" data-i18n="sqlt2_h">Funnel conversion rate</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt2_i"><code>FILTER (WHERE ...)</code> computes several conditional metrics in a single pass, without subqueries. <code>NULLIF</code> guards against division by zero.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span>
+  <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id)                                    <span class="hl-kw">AS</span> visitors,
+  <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> event=<span class="hl-str">'add_to_cart'</span>) <span class="hl-kw">AS</span> carted,
+  <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> event=<span class="hl-str">'purchase'</span>)    <span class="hl-kw">AS</span> purchased,
+  <span class="hl-bi">ROUND</span>(<span class="hl-num">100.0</span> * <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> event=<span class="hl-str">'purchase'</span>)
+              / <span class="hl-bi">NULLIF</span>(<span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id), <span class="hl-num">0</span>), <span class="hl-num">2</span>)       <span class="hl-kw">AS</span> cr_pct
+<span class="hl-kw">FROM</span> events;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>visitors | carted | purchased | cr_pct 
+----------+--------+-----------+--------
+       59 |     53 |        37 |  62.71
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt2_k"><code>FILTER</code> is PostgreSQL syntax. In MySQL and BigQuery the same result comes from <code>COUNT(DISTINCT CASE WHEN ... THEN user_id END)</code>.</div>
+</div>
+<div class="task" id="task3">
+<div class="task-head"><span class="task-num">3</span>
+<span class="task-title" data-i18n="sqlt3_h">MAU, DAU and sticky factor</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt3_i">Sticky factor = average DAU ÷ MAU. It shows what share of your monthly audience you see on a typical day. Around 20% or higher is considered good for most products.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> daily <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> event_at::<span class="hl-type">date</span> <span class="hl-kw">AS</span> day, <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">AS</span> dau
+  <span class="hl-kw">FROM</span> events
+  <span class="hl-kw">WHERE</span> event_at &gt;= <span class="hl-str">'2026-03-01'</span> <span class="hl-ctl">AND</span> event_at &lt; <span class="hl-str">'2026-04-01'</span>
+  <span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+),
+monthly <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id) <span class="hl-kw">AS</span> mau
+  <span class="hl-kw">FROM</span> events
+  <span class="hl-kw">WHERE</span> event_at &gt;= <span class="hl-str">'2026-03-01'</span> <span class="hl-ctl">AND</span> event_at &lt; <span class="hl-str">'2026-04-01'</span>
+)
+<span class="hl-kw">SELECT</span> <span class="hl-bi">ROUND</span>(<span class="hl-bi">AVG</span>(daily.dau), <span class="hl-num">1</span>)                    <span class="hl-kw">AS</span> avg_dau,
+       monthly.mau,
+       <span class="hl-bi">ROUND</span>(<span class="hl-num">100.0</span> * <span class="hl-bi">AVG</span>(daily.dau) / monthly.mau, <span class="hl-num">1</span>) <span class="hl-kw">AS</span> sticky_pct
+<span class="hl-kw">FROM</span> daily <span class="hl-kw">CROSS</span> <span class="hl-kw">JOIN</span> monthly
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> monthly.mau;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>avg_dau | mau | sticky_pct 
+---------+-----+------------
+    13.3 |  59 |       22.5
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt3_k">Note the <code>CROSS JOIN</code>: it attaches the single MAU row to every daily row. That is the standard trick when you need to divide by a grand total.</div>
+</div>
+<div class="task" id="task4">
+<div class="task-head"><span class="task-num">4</span>
+<span class="task-title" data-i18n="sqlt4_h">Running total of revenue</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt4_i">A window function accumulates the sum without collapsing rows. Note the nested <code>SUM(SUM(...))</code>: the inner one aggregates per day, the outer accumulates.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> created_at::<span class="hl-type">date</span> <span class="hl-kw">AS</span> day,
+       <span class="hl-bi">SUM</span>(amount)                                    <span class="hl-kw">AS</span> daily,
+       <span class="hl-bi">SUM</span>(<span class="hl-bi">SUM</span>(amount)) <span class="hl-kw">OVER</span> (<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> created_at::<span class="hl-type">date</span>) <span class="hl-kw">AS</span> running_total
+<span class="hl-kw">FROM</span> orders
+<span class="hl-kw">WHERE</span> status = <span class="hl-str">'paid'</span>
+  <span class="hl-ctl">AND</span> created_at &lt; <span class="hl-str">'2026-03-08'</span>
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>day     | daily  | running_total 
+------------+--------+---------------
+ 2026-01-02 |  49.23 |         49.23
+ 2026-01-04 |  47.12 |         96.35
+ 2026-01-07 |  30.95 |        127.30
+ 2026-01-08 |  24.51 |        151.81
+ 2026-01-09 |  33.64 |        185.45
+ 2026-01-12 |  31.09 |        216.54
+ 2026-01-14 |  43.68 |        260.22
+ 2026-01-15 |  88.63 |        348.85
+ 2026-01-21 |  52.08 |        400.93
+ 2026-01-23 |  55.66 |        456.59
+ 2026-01-24 |  28.84 |        485.43
+ 2026-01-25 |  43.61 |        529.04
+ 2026-01-27 |  35.19 |        564.23
+ 2026-01-28 |  35.01 |        599.24
+ 2026-01-29 | 144.46 |        743.70
+ 2026-02-05 |  44.87 |        788.57
+ 2026-02-08 |  57.02 |        845.59
+ 2026-02-09 |  56.65 |        902.24
+ 2026-02-11 |  58.27 |        960.51
+ 2026-02-14 |  57.73 |       1018.24
+ 2026-02-24 |  18.18 |       1036.42
+ 2026-02-25 |  45.24 |       1081.66
+ 2026-03-01 |   9.52 |       1091.18
+ 2026-03-02 | 234.37 |       1325.55
+ 2026-03-03 | 171.00 |       1496.55
+ 2026-03-04 |  19.67 |       1516.22
+ 2026-03-05 | 186.46 |       1702.68
+ 2026-03-06 |  39.03 |       1741.71
+ 2026-03-07 |  36.39 |       1778.10
+(29 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt4_k">The nested SUM looks odd but follows the execution order: <code>GROUP BY</code> runs first, and the window function then operates on the already grouped result.</div>
+</div>
+<div class="task" id="task5">
+<div class="task-head"><span class="task-num">5</span>
+<span class="task-title" data-i18n="sqlt5_h">Cohort revenue in the first 7 days</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt5_i">A classic payback question: how much a cohort brings in its first week. Subtracting dates in PostgreSQL yields an integer number of days.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> spend <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> <span class="hl-bi">date_trunc</span>(<span class="hl-str">'month'</span>, u.signup_date)::<span class="hl-type">date</span> <span class="hl-kw">AS</span> cohort_month,
+         o.created_at::<span class="hl-type">date</span> - u.signup_date       <span class="hl-kw">AS</span> day_no,
+         o.amount
+  <span class="hl-kw">FROM</span> users u
+  <span class="hl-kw">JOIN</span> orders o <span class="hl-kw">ON</span> o.user_id = u.user_id <span class="hl-ctl">AND</span> o.status = <span class="hl-str">'paid'</span>
+  <span class="hl-kw">WHERE</span> o.created_at::<span class="hl-type">date</span> &gt;= u.signup_date
+)
+<span class="hl-kw">SELECT</span> cohort_month,
+       <span class="hl-bi">SUM</span>(amount) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> day_no &lt;= <span class="hl-num">7</span>) <span class="hl-kw">AS</span> revenue_day_7,
+       <span class="hl-bi">SUM</span>(amount)                            <span class="hl-kw">AS</span> revenue_total
+<span class="hl-kw">FROM</span> spend
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>cohort_month | revenue_day_7 | revenue_total 
+--------------+---------------+---------------
+ 2026-01-01   |        743.70 |       1842.46
+ 2026-02-01   |        432.40 |       1232.15
+ 2026-03-01   |        393.90 |        651.34
+(3 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt5_k">The <code>o.created_at::date >= u.signup_date</code> filter matters: without it, orders placed before signup (which happens after data migrations) leak into the cohort and skew the metric.</div>
+</div>
+<div class="task" id="task6">
+<div class="task-head"><span class="task-num">6</span>
+<span class="task-title" data-i18n="sqlt6_h">Subscription churn rate</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt6_i">Churn for a period = those who left ÷ those active at the start. The subtlety: <code>ended_on IS NULL</code> means "still active", not "data missing".</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span>
+  <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (
+      <span class="hl-kw">WHERE</span> started_on &lt; <span class="hl-str">'2026-03-01'</span>
+        <span class="hl-ctl">AND</span> (ended_on <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span> <span class="hl-ctl">OR</span> ended_on &gt;= <span class="hl-str">'2026-03-01'</span>)
+  ) <span class="hl-kw">AS</span> active_at_start,
+  <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (
+      <span class="hl-kw">WHERE</span> ended_on &gt;= <span class="hl-str">'2026-03-01'</span> <span class="hl-ctl">AND</span> ended_on &lt; <span class="hl-str">'2026-04-01'</span>
+  ) <span class="hl-kw">AS</span> churned,
+  <span class="hl-bi">ROUND</span>(<span class="hl-num">100.0</span>
+      * <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> ended_on &gt;= <span class="hl-str">'2026-03-01'</span> <span class="hl-ctl">AND</span> ended_on &lt; <span class="hl-str">'2026-04-01'</span>)
+      / <span class="hl-bi">NULLIF</span>(<span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (
+          <span class="hl-kw">WHERE</span> started_on &lt; <span class="hl-str">'2026-03-01'</span>
+            <span class="hl-ctl">AND</span> (ended_on <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span> <span class="hl-ctl">OR</span> ended_on &gt;= <span class="hl-str">'2026-03-01'</span>)), <span class="hl-num">0</span>)
+    , <span class="hl-num">1</span>) <span class="hl-kw">AS</span> churn_pct
+<span class="hl-kw">FROM</span> subscriptions;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>active_at_start | churned | churn_pct 
+-----------------+---------+-----------
+              10 |       1 |      10.0
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt6_k">Forget the <code>ended_on IS NULL</code> branch and active subscriptions drop out of the denominator, inflating churn several times over.</div>
+</div>
+<div class="task" id="task7">
+<div class="task-head"><span class="task-num">7</span>
+<span class="task-title" data-i18n="sqlt7_h">Retention: did they come back on day 7</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt7_i">The share of users who returned exactly seven days after their first visit. <code>EXISTS</code> beats a join here: we only need existence, not every matching row.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> first_day <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> user_id, <span class="hl-bi">MIN</span>(event_at::<span class="hl-type">date</span>) <span class="hl-kw">AS</span> d0
+  <span class="hl-kw">FROM</span> events
+  <span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+)
+<span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*)                                   <span class="hl-kw">AS</span> users,
+       <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> returned)           <span class="hl-kw">AS</span> retained_d7,
+       <span class="hl-bi">ROUND</span>(<span class="hl-num">100.0</span> * <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> returned) / <span class="hl-bi">COUNT</span>(*), <span class="hl-num">1</span>) <span class="hl-kw">AS</span> retention_pct
+<span class="hl-kw">FROM</span> (
+  <span class="hl-kw">SELECT</span> f.user_id,
+         <span class="hl-kw">EXISTS</span> (
+           <span class="hl-kw">SELECT</span> <span class="hl-num">1</span> <span class="hl-kw">FROM</span> events e
+           <span class="hl-kw">WHERE</span> e.user_id = f.user_id
+             <span class="hl-ctl">AND</span> e.event_at::<span class="hl-type">date</span> = f.d0 + <span class="hl-num">7</span>
+         ) <span class="hl-kw">AS</span> returned
+  <span class="hl-kw">FROM</span> first_day f
+) t;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>users | retained_d7 | retention_pct 
+-------+-------------+---------------
+    59 |          17 |          28.8
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt7_k">This is "classic" retention — a return on a specific day. There is also "rolling" retention: returning at least once within a window. Always clarify which one is meant; the numbers differ substantially.</div>
+</div>
+<div class="task" id="task8">
+<div class="task-head"><span class="task-num">8</span>
+<span class="task-title" data-i18n="sqlt8_h">Session index per user</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt8_i">A session is a chain of events with no gap longer than 30 minutes. Three steps: <code>LAG</code> fetches the previous event, a gap raises a flag, and the running sum of flags becomes the session number.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> gaps <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> user_id, event_at, event,
+         <span class="hl-bi">LAG</span>(event_at) <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> user_id <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> event_at) <span class="hl-kw">AS</span> prev_at
+  <span class="hl-kw">FROM</span> events
+  <span class="hl-kw">WHERE</span> user_id <span class="hl-ctl">IN</span> (<span class="hl-num">1</span>, <span class="hl-num">2</span>)
+),
+flags <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> *,
+         <span class="hl-ctl">CASE</span> <span class="hl-ctl">WHEN</span> prev_at <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span>
+                <span class="hl-ctl">OR</span> event_at - prev_at &gt; <span class="hl-kw">INTERVAL</span> <span class="hl-str">'30 minutes'</span>
+              <span class="hl-ctl">THEN</span> <span class="hl-num">1</span> <span class="hl-ctl">ELSE</span> <span class="hl-num">0</span> <span class="hl-ctl">END</span> <span class="hl-kw">AS</span> is_new
+  <span class="hl-kw">FROM</span> gaps
+)
+<span class="hl-kw">SELECT</span> user_id, event_at, event,
+       <span class="hl-bi">SUM</span>(is_new) <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> user_id <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> event_at
+                         <span class="hl-kw">ROWS</span> <span class="hl-kw">UNBOUNDED</span> <span class="hl-kw">PRECEDING</span>) <span class="hl-kw">AS</span> session_no
+<span class="hl-kw">FROM</span> flags
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> user_id, event_at
+<span class="hl-kw">LIMIT</span> <span class="hl-num">8</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>user_id |      event_at       |    event    | session_no 
+---------+---------------------+-------------+------------
+       1 | 2026-03-14 12:13:00 | open        |          1
+       1 | 2026-03-14 12:16:00 | view        |          1
+       1 | 2026-03-14 12:23:00 | view        |          1
+       1 | 2026-03-14 20:04:00 | view        |          2
+       2 | 2026-03-03 13:18:00 | add_to_cart |          1
+       2 | 2026-03-03 13:30:00 | open        |          1
+       2 | 2026-03-04 18:35:00 | open        |          2
+       2 | 2026-03-04 18:38:00 | open        |          2
+(8 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt8_k">The first event of each user also raises the flag (<code>prev_at IS NULL</code>) — otherwise numbering would start at zero. The same trick splits visits, consecutive orders and day streaks.</div>
+</div>
+<div class="task" id="task9">
+<div class="task-head"><span class="task-num">9</span>
+<span class="task-title" data-i18n="sqlt9_h">Top 3 customers per country</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt9_i">The classic "top-N per group" task. Rank in a subquery and filter outside it — a window function cannot be used directly in <code>WHERE</code>.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">WITH</span> revenue <span class="hl-kw">AS</span> (
+  <span class="hl-kw">SELECT</span> u.country, u.user_id, <span class="hl-bi">SUM</span>(o.amount) <span class="hl-kw">AS</span> revenue
+  <span class="hl-kw">FROM</span> users u
+  <span class="hl-kw">JOIN</span> orders o <span class="hl-kw">ON</span> o.user_id = u.user_id <span class="hl-ctl">AND</span> o.status = <span class="hl-str">'paid'</span>
+  <span class="hl-kw">WHERE</span> u.country <span class="hl-ctl">IS</span> <span class="hl-ctl">NOT</span> <span class="hl-const">NULL</span>
+  <span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>, <span class="hl-num">2</span>
+)
+<span class="hl-kw">SELECT</span> country, user_id, revenue, rn
+<span class="hl-kw">FROM</span> (
+  <span class="hl-kw">SELECT</span> *,
+         <span class="hl-bi">ROW_NUMBER</span>() <span class="hl-kw">OVER</span> (<span class="hl-kw">PARTITION</span> <span class="hl-kw">BY</span> country <span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> revenue <span class="hl-kw">DESC</span>) <span class="hl-kw">AS</span> rn
+  <span class="hl-kw">FROM</span> revenue
+) ranked
+<span class="hl-kw">WHERE</span> rn &lt;= <span class="hl-num">3</span>
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> country, rn;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>country | user_id | revenue | rn 
+---------+---------+---------+----
+ BY      |       8 |   74.96 |  1
+ BY      |      18 |   31.09 |  2
+ BY      |      50 |   16.02 |  3
+ KZ      |      16 |  276.81 |  1
+ KZ      |      43 |  233.68 |  2
+ KZ      |      45 |  143.17 |  3
+ RU      |      60 |  222.05 |  1
+ RU      |       7 |  201.40 |  2
+ RU      |      48 |  133.23 |  3
+(9 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt9_k">Why <code>WHERE ROW_NUMBER() ... &lt;= 3</code> fails: window functions run <b>after</b> <code>WHERE</code>. Hence the subquery — or <code>QUALIFY</code> in dialects that support it.</div>
+</div>
+<div class="task" id="task10">
+<div class="task-head"><span class="task-num">10</span>
+<span class="task-title" data-i18n="sqlt10_h">Trap: COUNT after a JOIN</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt10_i">A join multiplies rows: a user with three orders occupies three rows. After that <code>COUNT(*)</code> no longer counts people.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*)                  <span class="hl-kw">AS</span> rows_after_join,
+       <span class="hl-bi">COUNT</span>(o.order_id)         <span class="hl-kw">AS</span> orders,
+       <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> u.user_id) <span class="hl-kw">AS</span> users
+<span class="hl-kw">FROM</span> users u
+<span class="hl-kw">LEFT</span> <span class="hl-kw">JOIN</span> orders o <span class="hl-kw">ON</span> o.user_id = u.user_id;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>rows_after_join | orders | users 
+-----------------+--------+-------
+             123 |    120 |    60
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt10_k">Three different numbers from one query. Always decide deliberately what you are counting: rows, non-null values, or distinct entities.</div>
+</div>
+<div class="task" id="task11">
+<div class="task-head"><span class="task-num">11</span>
+<span class="task-title" data-i18n="sqlt11_h">ARPU and ARPPU</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt11_i">ARPU divides by <b>all</b> users, ARPPU only by <b>paying</b> ones. The gap between them shows what share of your audience pays at all.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span>
+  <span class="hl-bi">ROUND</span>(<span class="hl-bi">SUM</span>(o.amount) / <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> u.user_id), <span class="hl-num">2</span>) <span class="hl-kw">AS</span> arpu,
+  <span class="hl-bi">ROUND</span>(<span class="hl-bi">SUM</span>(o.amount) / <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> o.user_id), <span class="hl-num">2</span>) <span class="hl-kw">AS</span> arppu,
+  <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> u.user_id)                           <span class="hl-kw">AS</span> all_users,
+  <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> o.user_id)                           <span class="hl-kw">AS</span> paying_users
+<span class="hl-kw">FROM</span> users u
+<span class="hl-kw">LEFT</span> <span class="hl-kw">JOIN</span> orders o <span class="hl-kw">ON</span> o.user_id = u.user_id <span class="hl-ctl">AND</span> o.status = <span class="hl-str">'paid'</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>arpu  | arppu | all_users | paying_users 
+-------+-------+-----------+--------------
+ 66.82 | 77.10 |        60 |           52
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt11_k">The <code>status = "paid"</code> condition sits in <code>ON</code>, not <code>WHERE</code>. That matters: in <code>WHERE</code> it would turn the LEFT JOIN into an INNER one and drop non-payers from the ARPU denominator.</div>
+</div>
+<div class="task" id="task12">
+<div class="task-head"><span class="task-num">12</span>
+<span class="task-title" data-i18n="sqlt12_h">NULL: how much we do not know</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt12_i"><code>COUNT(*)</code> counts rows; <code>COUNT(column)</code> counts only non-null values. The difference between them is the number of gaps.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*)                             <span class="hl-kw">AS</span> total,
+       <span class="hl-bi">COUNT</span>(country)                       <span class="hl-kw">AS</span> with_country,
+       <span class="hl-bi">COUNT</span>(*) - <span class="hl-bi">COUNT</span>(country)            <span class="hl-kw">AS</span> null_country,
+       <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FILTER</span> (<span class="hl-kw">WHERE</span> plan <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span>) <span class="hl-kw">AS</span> null_plan
+<span class="hl-kw">FROM</span> users;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>total | with_country | null_country | null_plan 
+-------+--------------+--------------+-----------
+    60 |           58 |            2 |         6
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt12_k">Check for gaps <b>before</b> computing metrics: <code>AVG</code> silently ignores NULL, so the average is taken over fewer rows than you assume.</div>
+</div>
+<div class="task" id="task13">
+<div class="task-head"><span class="task-num">13</span>
+<span class="task-title" data-i18n="sqlt13_h">Trap: NOT IN with NULL</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt13_i">The nastiest trap in SQL. If the <code>NOT IN</code> list contains even one NULL, the query returns <b>zero rows</b> — silently, with no error or warning.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span>
+  (<span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FROM</span> users
+   <span class="hl-kw">WHERE</span> country <span class="hl-ctl">NOT</span> <span class="hl-ctl">IN</span> (<span class="hl-kw">SELECT</span> country <span class="hl-kw">FROM</span> users
+                         <span class="hl-kw">WHERE</span> country <span class="hl-ctl">IS</span> <span class="hl-const">NULL</span> <span class="hl-ctl">OR</span> country = <span class="hl-str">'KZ'</span>)) <span class="hl-kw">AS</span> with_null_in_list,
+  (<span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FROM</span> users
+   <span class="hl-kw">WHERE</span> country <span class="hl-ctl">NOT</span> <span class="hl-ctl">IN</span> (<span class="hl-kw">SELECT</span> country <span class="hl-kw">FROM</span> users
+                         <span class="hl-kw">WHERE</span> country = <span class="hl-str">'KZ'</span>))                    <span class="hl-kw">AS</span> without_null,
+  (<span class="hl-kw">SELECT</span> <span class="hl-bi">COUNT</span>(*) <span class="hl-kw">FROM</span> users u
+   <span class="hl-kw">WHERE</span> <span class="hl-ctl">NOT</span> <span class="hl-kw">EXISTS</span> (<span class="hl-kw">SELECT</span> <span class="hl-num">1</span> <span class="hl-kw">FROM</span> users x
+                     <span class="hl-kw">WHERE</span> x.country = <span class="hl-str">'KZ'</span> <span class="hl-ctl">AND</span> x.country = u.country)) <span class="hl-kw">AS</span> not_exists_ok;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>with_null_in_list | without_null | not_exists_ok 
+-------------------+--------------+---------------
+                 0 |           38 |            40
+(1 row)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt13_k">Three different answers to one question. The reason: <code>country NOT IN (..., NULL)</code> evaluates to "unknown" for every row, and "unknown" does not pass the filter. Use <code>NOT EXISTS</code>, which is immune and also keeps rows whose own value is NULL.</div>
+</div>
+<div class="task" id="task14">
+<div class="task-head"><span class="task-num">14</span>
+<span class="task-title" data-i18n="sqlt14_h">Time to first order</span>
+<span class="lv lv-med" data-i18n="lv_med">Medium</span></div>
+<p data-i18n="sqlt14_i">An activation-speed metric. Subtracting dates in PostgreSQL gives an integer number of days; subtracting timestamps gives an interval.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> u.user_id,
+       u.signup_date,
+       <span class="hl-bi">MIN</span>(o.created_at)::<span class="hl-type">date</span>                     <span class="hl-kw">AS</span> first_order,
+       <span class="hl-bi">MIN</span>(o.created_at)::<span class="hl-type">date</span> - u.signup_date     <span class="hl-kw">AS</span> days_to_first_order
+<span class="hl-kw">FROM</span> users u
+<span class="hl-kw">JOIN</span> orders o <span class="hl-kw">ON</span> o.user_id = u.user_id <span class="hl-ctl">AND</span> o.status = <span class="hl-str">'paid'</span>
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>, <span class="hl-num">2</span>
+<span class="hl-kw">HAVING</span> <span class="hl-bi">MIN</span>(o.created_at)::<span class="hl-type">date</span> &gt;= u.signup_date
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> days_to_first_order
+<span class="hl-kw">LIMIT</span> <span class="hl-num">5</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>user_id | signup_date | first_order | days_to_first_order 
+---------+-------------+-------------+---------------------
+      48 | 2026-01-07  | 2026-01-07  |                   0
+      47 | 2026-01-02  | 2026-01-02  |                   0
+      31 | 2026-02-25  | 2026-02-25  |                   0
+       6 | 2026-01-23  | 2026-01-23  |                   0
+      28 | 2026-01-15  | 2026-01-15  |                   0
+(5 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt14_k">The filter sits in <code>HAVING</code> because it relies on the aggregate <code>MIN(...)</code> — it cannot go in <code>WHERE</code>, where aggregates do not yet exist.</div>
+</div>
+<div class="task" id="task15">
+<div class="task-head"><span class="task-num">15</span>
+<span class="task-title" data-i18n="sqlt15_h">WAU by week</span>
+<span class="lv lv-easy" data-i18n="lv_easy">Easy</span></div>
+<p data-i18n="sqlt15_i"><code>date_trunc</code> rounds a date down to the start of a week, month or quarter. It is the main tool for any periodic reporting.</p>
+<button class="code-toggle" onclick="toggleCode(this)" aria-expanded="false"><svg class="code-toggle-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg><span data-i18n="sql_show">Show SQL</span></button>
+<div class="code-collapse" hidden>
+<div class="code-block"><button class="code-copy" onclick="copyCodeBlock(this)" data-i18n="btn_copy">Copy</button><pre><span class="hl-kw">SELECT</span> <span class="hl-bi">date_trunc</span>(<span class="hl-str">'week'</span>, event_at)::<span class="hl-type">date</span> <span class="hl-kw">AS</span> week_start,
+       <span class="hl-bi">COUNT</span>(<span class="hl-kw">DISTINCT</span> user_id)             <span class="hl-kw">AS</span> wau
+<span class="hl-kw">FROM</span> events
+<span class="hl-kw">GROUP</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>
+<span class="hl-kw">ORDER</span> <span class="hl-kw">BY</span> <span class="hl-num">1</span>;</pre></div>
+<div class="code-output"><span class="code-output-label" data-i18n="sql_out_label"># result (verified on PostgreSQL 16):</span>week_start | wau 
+------------+-----
+ 2026-02-23 |  13
+ 2026-03-02 |  43
+ 2026-03-09 |  44
+ 2026-03-16 |  42
+ 2026-03-23 |  44
+ 2026-03-30 |  26
+(6 rows)</div>
+</div>
+
+<div class="cs-takeaway" data-i18n="sqlt15_k">In PostgreSQL a week starts on Monday. Note the partial first and last weeks — they are usually dropped when comparing trends.</div>
+</div>
+</div>
+<div class="card" id="s-errors"><div class="card-title" data-i18n="er_h">Common mistakes</div>
+<table class="ref-table"><thead><tr><th data-i18n="er_c1">Mistake</th><th data-i18n="er_c2">What it costs</th><th data-i18n="er_c3">Do this instead</th></tr></thead><tbody>
+<tr><td data-i18n="e1a"><code>COUNT(*)</code> after a join</td><td data-i18n="e1b">A join multiplies rows, so you count orders instead of people</td><td data-i18n="e1c"><code>COUNT(DISTINCT user_id)</code></td></tr>
+<tr><td data-i18n="e2a"><code>NOT IN</code> with a NULL in the list</td><td data-i18n="e2b">Returns zero rows silently — no error, no warning</td><td data-i18n="e2c"><code>NOT EXISTS</code>, or filter NULLs out of the subquery</td></tr>
+<tr><td data-i18n="e3a">Filtering the right table in <code>WHERE</code> after a LEFT JOIN</td><td data-i18n="e3b">Turns the LEFT JOIN into an INNER one and drops the rows you meant to keep</td><td data-i18n="e3c">Put the condition in <code>ON</code></td></tr>
+<tr><td data-i18n="e4a">Comparing a timestamp to a date</td><td data-i18n="e4b">Matches only events at exactly midnight; the rest of the day is lost</td><td data-i18n="e4c">A half-open range covering the whole day</td></tr>
+<tr><td data-i18n="e5a">Aggregates in <code>WHERE</code></td><td data-i18n="e5b">Syntax error — at that point the aggregate does not exist yet</td><td data-i18n="e5c">Move the condition to <code>HAVING</code></td></tr>
+<tr><td data-i18n="e6a">A window function in <code>WHERE</code></td><td data-i18n="e6b">Same reason: windows are evaluated after <code>WHERE</code></td><td data-i18n="e6c">Rank in a subquery and filter outside it</td></tr>
+<tr><td data-i18n="e7a">Forgetting <code>DISTINCT</code> in DAU / MAU</td><td data-i18n="e7b">You count events, not users — the metric inflates several times over</td><td data-i18n="e7c"><code>COUNT(DISTINCT user_id)</code></td></tr>
+<tr><td data-i18n="e8a">Dividing without <code>NULLIF</code></td><td data-i18n="e8b">A zero denominator kills the whole query with a division error</td><td data-i18n="e8c"><code>NULLIF</code> on the denominator returns NULL instead of failing</td></tr>
+</tbody></table></div>
+</div>
+</div>
+<div class="causal-back">
+  <a href="python.html" class="causal-back-link" data-i18n="sql_back_py">← Python for Analysts</a>
+  <a href="ab-testing.html" class="causal-back-link" data-i18n="sql_back_ab">A/B Testing Calculator</a>
+  <a href="index.html" class="causal-back-link" data-i18n="c_back_home">Home</a>
+</div>
+</main>
+<script src="i18n.js"></script>
+<script src="stats.js"></script>
+<script src="app.js"></script>
+<script>
+function toggleCode(btn){
+  const wrap = btn.nextElementSibling; if(!wrap) return;
+  const open = wrap.hasAttribute('hidden');
+  if(open) wrap.removeAttribute('hidden'); else wrap.setAttribute('hidden','');
+  btn.setAttribute('aria-expanded', open?'true':'false');
+  btn.classList.toggle('open', open);
+  const lbl = btn.querySelector('span[data-i18n]');
+  if(lbl && typeof T!=='undefined' && T[currentLang]){
+    lbl.textContent = open ? (T[currentLang].sql_hide||'Hide SQL') : (T[currentLang].sql_show||'Show SQL');
+    lbl.setAttribute('data-i18n', open?'sql_hide':'sql_show');
+  }
+}
+(function(){
+  const nav=document.getElementById('sql-nav'); if(!nav) return;
+  const items=[...nav.querySelectorAll('.toc-link')];
+  const secs=items.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  function spy(){
+    let act=0; const y=window.scrollY+140;
+    secs.forEach((el,i)=>{ const top=el.getBoundingClientRect().top+window.scrollY; if(top<=y) act=i; });
+    items.forEach((a,i)=>a.classList.toggle('active',i===act));
+  }
+  window.addEventListener('scroll',spy,{passive:true}); spy();
+  items.forEach(a=>a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href')); if(!t) return;
+    e.preventDefault();
+    window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-90,behavior:'smooth'});
+  }));
+})();
+</script>
+</body>
+</html>
